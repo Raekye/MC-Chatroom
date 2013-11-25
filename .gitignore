@@ -1,0 +1,8 @@
+/*
+!/src
+/src/minecraft/*
+!/src/minecraft/com
+/src/minecraft/com/*
+!/src/minecraft/com/creatifcubed
+
+!.gitignore
