@@ -42,12 +42,12 @@ class PacketFactory(val gson: Gson = new Gson()) {
       try {
         buf.close();
       } catch {
-        case _: IOException => null; // nothing
+        case _: IOException => (); // nothing
       }
       try {
         dos.close();
       } catch {
-        case _: IOException => null; // nothing
+        case _: IOException => (); // nothing
       }
     }
     return new Packet250CustomPayload(channel, buf.toByteArray());
@@ -78,12 +78,12 @@ class PacketFactory(val gson: Gson = new Gson()) {
       try {
         buf.close();
       } catch {
-        case _: IOException => null; // nothing
+        case _: IOException => (); // nothing
       }
       try {
         dis.close();
       } catch {
-        case _: IOException => null; // nothing
+        case _: IOException => (); // nothing
       }
     }
     return obj;

@@ -7,29 +7,57 @@ import java.util.EnumSet;
 import org.lwjgl.input.Keyboard;
 import net.minecraft.src.ModLoader;
 
+import scala.util.control.Breaks._;
+import java.net.{ DatagramPacket, DatagramSocket, InetAddress };
+import com.creatifcubed.minecraft.mc_chatroom.network.AudioPacket;
+
 class KeyHandler extends AbstractKeyHandler(Array(
-    KeyHandler.KEYBINDING_TOGGLE_MICROPHONE, KeyHandler.KEYBINDING_TOGGLE_CHANNEL)
-    , KeyHandler.KEYBINDINGS_REPEATINGS) {
+  KeyHandler.KEYBINDING_TOGGLE_MICROPHONE, KeyHandler.KEYBINDING_TOGGLE_CHANNEL), KeyHandler.KEYBINDINGS_REPEATINGS) {
   override def getLabel(): String = {
     return MCChatroom.MOD_ID + "-keys";
   }
   override def keyDown(types: EnumSet[TickType], kb: KeyBinding, tickEnd: Boolean, isRepeat: Boolean): Unit = {
     if (tickEnd) {
-      return;
+      return ;
     }
     if (kb.keyCode == KeyHandler.KEYBINDING_TOGGLE_MICROPHONE.keyCode) {
-      
+      val clientSocket = new DatagramSocket();
+      try {
+        val sendData = "this is from the clinet".getBytes("utf-8");
+        val audioPacket = new AudioPacket(0, sendData);
+        val bytes = audioPacket.toBytes;
+        val serverIP = InetAddress.getByName("localhost");
+        val datagramPacket = new DatagramPacket(bytes, bytes.length, serverIP, 9010);
+        clientSocket.send(datagramPacket);
+      } finally {
+        clientSocket.close();
+      }
     } else if (kb.keyCode == KeyHandler.KEYBINDING_TOGGLE_CHANNEL.keyCode) {
-      
+      MCChatroom.microphone.start();
+      new Thread(new Runnable() {
+        override def run(): Unit = {
+          Thread.sleep(3000);
+          MCChatroom.microphone.stop();
+          breakable {
+            while (true) {
+              val data = MCChatroom.microphone.read();
+              if (data == null) {
+                break;
+              }
+              MCChatroom.log.info("Got " + data.length + " bytes");
+            }
+          }
+        }
+      }).start();
     }
   }
-  
+
   override def keyUp(types: EnumSet[TickType], kb: KeyBinding, tickEnd: Boolean): Unit = {
     if (tickEnd) {
-      return;
+      return ;
     }
   }
-  
+
   override def ticks(): EnumSet[TickType] = {
     EnumSet.of(TickType.CLIENT);
   }

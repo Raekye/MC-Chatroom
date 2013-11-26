@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 import java.util.Arrays;
 
 import com.creatifcubed.minecraft.mc_chatroom.network.{ PacketFactory, MCChatroomCommand };
-import com.creatifcubed.minecraft.mc_chatroom.models.AudioSource;
+import com.creatifcubed.minecraft.mc_chatroom.models.{ AudioSource, Chatroom };
 
 @Mod(modid=MCChatroom.MOD_ID, name=MCChatroom.MOD_NAME, version=MCChatroom.MOD_VERSION, modLanguage="scala")
 @NetworkMod(clientSideRequired=false
@@ -42,6 +42,9 @@ object MCChatroom {
   
   @SideOnly(Side.CLIENT)
   val microphone: AudioSource = new AudioSource();
+  
+  var chatroom: Chatroom = null;
+  var chatroomThread: Thread = null;
 
   @EventHandler
   def preInit(e: FMLPreInitializationEvent): Unit = {
@@ -68,10 +71,15 @@ object MCChatroom {
   @EventHandler
   def serverStarting(e: FMLServerStartingEvent): Unit = {
     e.registerServerCommand(new MCChatroomCommand());
+    chatroom = new Chatroom(9010);
+    chatroomThread = new Thread(chatroom);
+    chatroomThread.start();
   }
 
   @EventHandler
   def serverStoppingEvent(e: FMLServerStoppingEvent): Unit = {
-    return;
+    chatroomThread.interrupt();
+    chatroomThread = null;
+    chatroom = null;
   }
 }
